@@ -3,7 +3,7 @@
  * @Author: amplee
  * @Date: 2021-02-08 11:55:16
  * @LastEditors: amplee
- * @LastEditTime: 2021-02-08 16:08:05
+ * @LastEditTime: 2021-02-08 17:54:03
  */
 import Phaser from 'phaser';
 const assetsMap = require('./asset_map.json');
@@ -45,9 +45,50 @@ gameSenceCenter.boot = {
                     continue;
                     case 'startbutton':
                         this.load.spritesheet(key, require(`./${assetsMap[key]}`), {
+                            frameWidth: 100,
+                            frameHeight: 40,
+                        });
+                    continue;
+                    case 'replaybutton':
+                        this.load.spritesheet(key, require(`./${assetsMap[key]}`), {
+                            frameWidth: 80,
+                            frameHeight: 30
+                        });
+                    continue;
+                    case 'explode1':
+                        this.load.spritesheet(key, require(`./${assetsMap[key]}`), {
+                            frameWidth: 20,
+                            frameHeight: 20,
+                        });
+                    continue;
+                    case 'explode2':
+                        this.load.spritesheet(key, require(`./${assetsMap[key]}`), {
+                            frameWidth: 30,
+                            frameHeight: 30,
+                        });
+                    continue;
+                    case 'explode3':
+                        this.load.spritesheet(key, require(`./${assetsMap[key]}`), {
+                            frameWidth: 50,
+                            frameHeight: 50,
+                        });
+                    continue;
+                    case 'myexplode':
+                        this.load.spritesheet(key, require(`./${assetsMap[key]}`), {
                             frameWidth: 40,
                             frameHeight: 40,
                         });
+                    continue;
+                    case 'ao':
+                    case 'crash1':
+                    case 'crash2':
+                    case 'crash3':
+                    case 'deng':
+                    case 'fashe':
+                    case 'normalback':
+                    case 'pi':
+                    case 'playback':
+                        this.load.audio(key, require(`./${assetsMap[key]}`));
                     continue;
                     default:
                         assetsMap[key] = this.load.image(key, require(`./${assetsMap[key]}`))
