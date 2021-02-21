@@ -2,13 +2,8 @@
  * @Descripttion: 
  * @Author: amplee
  * @Date: 2021-02-08 11:55:16
-<<<<<<< HEAD
  * @LastEditors: amplee
- * @LastEditTime: 2021-02-08 16:08:05
-=======
- * @LastEditors: amplee li
- * @LastEditTime: 2021-02-20 23:08:18
->>>>>>> d490658c4cdfca56277d0bc8bc98fcf00185ef30
+ * @LastEditTime: 2021-02-21 10:05:58
  */
 import Phaser from 'phaser';
 const assetsMap = require('./asset_map.json');
@@ -39,8 +34,6 @@ class MyGame extends Phaser.Scene
 gameSenceCenter.boot = {
     key: 'boot',
     preload() {
-<<<<<<< HEAD
-=======
         // 移动端自适应
         if (!this.game.device.os.desktop) {
             this.scale.scaleMode = Phaser.Scale.FIT;
@@ -48,7 +41,6 @@ gameSenceCenter.boot = {
         }
         
         // 加载资源
->>>>>>> d490658c4cdfca56277d0bc8bc98fcf00185ef30
         for(const key in assetsMap) {
             if (assetsMap.hasOwnProperty(key)) {
                 switch(key) {
@@ -60,8 +52,6 @@ gameSenceCenter.boot = {
                     continue;
                     case 'startbutton':
                         this.load.spritesheet(key, require(`./${assetsMap[key]}`), {
-<<<<<<< HEAD
-=======
                             frameWidth: 100,
                             frameHeight: 40,
                         });
@@ -92,13 +82,10 @@ gameSenceCenter.boot = {
                     continue;
                     case 'myexplode':
                         this.load.spritesheet(key, require(`./${assetsMap[key]}`), {
->>>>>>> d490658c4cdfca56277d0bc8bc98fcf00185ef30
                             frameWidth: 40,
                             frameHeight: 40,
                         });
                     continue;
-<<<<<<< HEAD
-=======
                     case 'ao':
                     case 'crash1':
                     case 'crash2':
@@ -110,7 +97,6 @@ gameSenceCenter.boot = {
                     case 'playback':
                         this.load.audio(key, require(`./${assetsMap[key]}`));
                     continue;
->>>>>>> d490658c4cdfca56277d0bc8bc98fcf00185ef30
                     default:
                         assetsMap[key] = this.load.image(key, require(`./${assetsMap[key]}`))
                     continue;
@@ -118,10 +104,7 @@ gameSenceCenter.boot = {
             }
         }
 
-<<<<<<< HEAD
-=======
         // 添加百分比进度条
->>>>>>> d490658c4cdfca56277d0bc8bc98fcf00185ef30
         const percentText = this.make.text({
             x: this.game.config.width / 2,
             y: this.game.config.height / 2 - 5,
@@ -132,24 +115,13 @@ gameSenceCenter.boot = {
             }
         })
         .setOrigin(0.5, 0.5);
-<<<<<<< HEAD
-        if (!this.game.device.os.desktop) {
-            this.scale.scaleMode = Phaser.Scale.FIT;
-            this.scale.refresh();
-        }
-
-=======
 
         // 加载过程中，添加百分比进度条
->>>>>>> d490658c4cdfca56277d0bc8bc98fcf00185ef30
         this.load.on('progress', function(value) {
             percentText.setText(parseInt(value * 100) + '%');
         });
 
-<<<<<<< HEAD
-=======
         // 状态完成，移除百分比进度条
->>>>>>> d490658c4cdfca56277d0bc8bc98fcf00185ef30
         this.load.on('complete', function () {
             percentText.destroy();
         });
@@ -162,19 +134,6 @@ gameSenceCenter.boot = {
 gameSenceCenter.start = {
     key: 'start',
     create() {
-<<<<<<< HEAD
-      this.add.image(0, 0, 'bg').setOrigin(0);
-      const plane = this.add.sprite(this.game.config.width / 2, 100, 'myplane');
-      this.anims.create({
-          key: 'fly',
-          frames: this.anims.generateFrameNumbers('myplane', { start: 0, end: 3}),
-          frameRate: 10,
-          repeat: -1
-      });
-      plane.anims.play('fly');
-
-      const startbutton = this.add.sprite(this.game.config.width / 2, 200, 'startbutton', 1).setInteractive();
-=======
         // 添加背景
         const bg = this.add.image(0, 0, 'bg').setOrigin(0);
         // 添加飞机精灵
@@ -192,14 +151,11 @@ gameSenceCenter.start = {
       // 添加开始按钮
       const startbutton = this.add.sprite(this.game.config.width / 2, 200, 'startbutton', 1).setInteractive();
       // 开始按钮事件
->>>>>>> d490658c4cdfca56277d0bc8bc98fcf00185ef30
       startbutton.on('pointerdown', () => {
           startbutton.setFrame(0);
       });
       startbutton.on('pointerup', () => {
           startbutton.setFrame(1);
-<<<<<<< HEAD
-=======
           console.log('start game');
           this.scene.start('play');
           startAudio.stop();
@@ -210,14 +166,11 @@ gameSenceCenter.start = {
       startAudio.play({
           loop: true,
           volume: 0.1
->>>>>>> d490658c4cdfca56277d0bc8bc98fcf00185ef30
       })
     },
     update() {},
 }
 
-<<<<<<< HEAD
-=======
 gameSenceCenter.play = {
     key: 'play',
     create() {
@@ -296,20 +249,15 @@ function createBulletByLife() {
     }
 }
 
->>>>>>> d490658c4cdfca56277d0bc8bc98fcf00185ef30
 const config = {
     type: Phaser.AUTO,
     parent: 'phaser-example',
     width: 240,
     height: 400,
-<<<<<<< HEAD
-    scene: [gameSenceCenter.boot, gameSenceCenter.start],
-=======
     scene: [gameSenceCenter.boot, gameSenceCenter.start, gameSenceCenter.play],
     physics: {
         default: 'arcade'
     }
->>>>>>> d490658c4cdfca56277d0bc8bc98fcf00185ef30
 };
 
 const game = new Phaser.Game(config);
