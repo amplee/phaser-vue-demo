@@ -1,9 +1,9 @@
 /*
- * @Descripttion: 
+ * @Descripttion: 飞机大战
  * @Author: amplee
  * @Date: 2021-02-08 11:55:16
  * @LastEditors: amplee
- * @LastEditTime: 2021-02-21 10:05:58
+ * @LastEditTime: 2021-03-01 15:41:52
  */
 import Phaser from 'phaser';
 const assetsMap = require('./asset_map.json');
@@ -140,33 +140,33 @@ gameSenceCenter.start = {
         const plane = this.add.sprite(this.game.config.width / 2, 100, 'myplane');
         // 创建飞行帧动画
         this.anims.create({
-          key: 'fly',
-          frames: this.anims.generateFrameNumbers('myplane', { start: 0, end: 3}),
-          frameRate: 10,
-          repeat: -1 // 重复
-      });
-      // 飞机调用飞行动画
-      plane.anims.play('fly');
+            key: 'fly',
+            frames: this.anims.generateFrameNumbers('myplane', { start: 0, end: 3}),
+            frameRate: 10,
+            repeat: -1 // 重复
+        });
+        // 飞机调用飞行动画
+        plane.anims.play('fly');
 
-      // 添加开始按钮
-      const startbutton = this.add.sprite(this.game.config.width / 2, 200, 'startbutton', 1).setInteractive();
-      // 开始按钮事件
-      startbutton.on('pointerdown', () => {
-          startbutton.setFrame(0);
-      });
-      startbutton.on('pointerup', () => {
-          startbutton.setFrame(1);
-          console.log('start game');
-          this.scene.start('play');
-          startAudio.stop();
-      });
+        // 添加开始按钮
+        const startbutton = this.add.sprite(this.game.config.width / 2, 200, 'startbutton', 1).setInteractive();
+        // 开始按钮事件
+        startbutton.on('pointerdown', () => {
+            startbutton.setFrame(0);
+        });
+        startbutton.on('pointerup', () => {
+            startbutton.setFrame(1);
+            console.log('start game');
+            this.scene.start('play');
+            startAudio.stop();
+        });
 
-      // 添加声音
-      const startAudio = this.sound.add('normalback');
-      startAudio.play({
-          loop: true,
-          volume: 0.1
-      })
+        // 添加声音
+        const startAudio = this.sound.add('normalback');
+        startAudio.play({
+            loop: true,
+            volume: 0.1
+        })
     },
     update() {},
 }
@@ -182,7 +182,16 @@ gameSenceCenter.play = {
       // 添加计分文本
       this.scoreText = this.add.text(0, 0, 'Score: 0', { color: '#ff0000', fontSize: '16px'});
       this.score = 0;
-
+      
+        // 添加声音
+        this.startAudio = this.sound.add('playback');
+        this.explode = this.sound.add('crash3');
+        this.pi = this.sound.add('pi');
+        this.ao = this.sound.add('ao');
+        this.startAudio.play({
+            loop: true,
+            volume: 0.1,
+        })
       // 引入飞机精灵
       this.plane = this.add.sprite(this.game.config.width / 2, 100, 'myplane').setInteractive({ draggable: true});
       // 创建飞行帧动画
@@ -192,6 +201,17 @@ gameSenceCenter.play = {
           frameRate: 10,
           repeat: -1
       });
+        // 创建飞机爆炸帧动画
+        this.anims.create({
+            key: 'planeBoom',
+            frames: this.anims.generateFrameNumbers('myexplode', {
+                start: 0,
+                end: 3
+            }),
+            frameRate: 2,
+            repeat: 1
+        });
+        
       // 飞机调用飞行动画
       this.plane.anims.play('fly');
       this.tweens.add({
@@ -211,32 +231,244 @@ gameSenceCenter.play = {
       });
 
       // 创建子弹组
-      this.bullets = this.add.group();
+      this.bullets = this.add.group({
+          classType: BulletClass,
+          runChildUpdate: true
+      });
+
+      // 创建敌机子弹
+      const EnemyBulletsClass = EnemyBulletClass(this.game.config.height);
+      this.enemyBullets = this.add.group({
+            classType: EnemyBulletsClass,
+            runChildUpdate: true
+        });
 
       // 创建敌机
-      this.enemySmall = this.add.sprite(30, 30, 'enemy1');
-      this.physics.add.existing(this.enemySmall);
+      ['enemy1', 'enemy2', 'enemy3'].forEach(item => {
+          const EnemyClass = EnemyFactory(item, this.game.config.height, this.enemyBullets);
+          this[item] = this.add.group({
+              classType: EnemyClass,
+              runChildUpdate: true
+          });
+
+          const key = item.replace('enemy', '');
+          // 创建敌机爆炸动画
+          this.anims.create({
+              key: `enemyBoom${key}`,
+              frames: this.anims.generateFrameNumbers(`explode${key}`, {
+                  start: 0,
+                  end: 2
+              }),
+              frameRate: 5,
+              repeat: 0
+          });
+      });
       
       // 设置子弹默认时间为0
       this.myBulletBeforeTime = 0;
+      // 设置敌机子弹默认时间为0
+      this.enemyBeforeTime = 0;
 
+      // 敌机与飞机的碰撞检测
+        ['enemy1', 'enemy2', 'enemy3'].forEach(item => {
+            this.physics.add.overlap(this.bullets, this[item], function(bullet, enemy) {
+                bullet.destroy();
+
+                // 
+                enemy.life -= 1;
+                if (enemy.life <= 0) {
+                    enemy.destroy();
+                    const key = item.replace('enemy', '');
+                    this.score = +key + this.score;
+                    this.scoreText.setText(`Score: ${this.score}`, this.score);
+                    const enemyFrame = this.add.sprite(enemy.x, enemy.y, `explode${key}`);
+                    enemyFrame.anims.play(`enemyBoom${key}`);
+                    enemyFrame.once('animationcomplete', function() {
+                        enemyFrame.destroy();
+                    })
+                }
+            }, null, this);
+        });
+        // 我的子弹与敌方子弹 碰撞检测
+        this.physics.add.overlap(this.bullets, this.enemyBullets, function (bullet, enemyBullet) {
+            bullet.destroy();
+            enemyBullet.destroy();
+        }, null, this);
+        // 敌机子弹与飞机的碰撞检测
+        this.physics.add.overlap(this.enemyBullets, this.plane, function (enemyBullet, plane) {
+            plane.destroy();
+            this.gameOver = true;
+            // 展示飞机爆炸效果
+            const myPlaneFrame =  this.add.sprite(plane.x, plane.y, 'myexplode');
+            myPlaneFrame.anims.play('planeBoom');
+            myPlaneFrame.once('animationcomplete', () => {
+                myPlaneFrame.destroy();
+                this.scene.start('restart', {
+                    score: this.score
+                });
+                this.startAudio.stop();
+            });
+        }, null, this);
     },
-    updated() {
-      const time = new Date().getTime();
-      // 子弹
-      if (time - this.myBulletBeforeTime > 200 && !this.gameOver) {
+    update() {
+        const time = new Date().getTime();
+        // 子弹
+        if (time - this.myBulletBeforeTime > 200 && !this.gameOver) {
         //   createBulletByLife.call(this);
-          const bullet = this.add.sprite(this.plane.x, this.plane.y - this.plane.height / 2, 'mybullet');
+            const bullet = this.bullets && this.bullets.getFirstDead(true); // 重复利用子弹
+            if (bullet) {
+                bullet.fire();
+                bullet.setPosition(this.plane.x, this.plane.y - this.plane.height / 2);
+                this.physics.add.existing(bullet);
+                bullet.body.setVelocity(0, -300);
+                this.myBulletBeforeTime = time;
+            }
+        }
 
-          this.myBulletBeforeTime = time;
-          this.physics.add.existing(bullet);
-          bullet.body.setVelocity(0, -300);
-      }
+        // 引入敌机
+        if (time - this.enemyBeforeTime > 1200) {
+            const enemyIndex = Phaser.Math.Between(1, 3);
+            const enemy = this[`enemy${enemyIndex}`].getFirstDead(true);
+            if (enemy) {
+                enemy.show();
+                enemy.setOrigin(0.5, 0.5);
+                enemy.setPosition(Phaser.Math.Between(0 + enemy.width, this.game.config.width - enemy.width), 0);
+                this.physics.add.existing(enemy);
+                enemy.body.setVelocity(0, 200);
+                enemy.body.setVelocity(0, 50 * (4 - enemyIndex)); // 敌机越大，飞速越慢
+                this.enemyBeforeTime = time;
+            }
+        }
       // 背景滚动
       this.bg.tilePositionY -= 1;
     },
 }
 
+gameSenceCenter.restart = {
+    key: 'restart',
+    create(data) {
+        const bg = this.add.image(0, 0, 'bg').setOrigin(0);
+        // 引入飞机精灵
+        const plane = this.add.sprite(this.game.config.width / 2, 100, 'myplane');
+
+        // 创建飞行帧动画
+        this.anims.create({
+            key: 'fly',
+            frames: this.anims.generateFrameNumbers('myplane', {
+                start: 0,
+                end: 3
+            }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        // 飞机调用飞行动画
+        plane.anims.play('fly');
+
+        // 添加得分
+        const scoreText = this.add.text(this.game.config.width / 2, 160, `Score: ${data.score}`, { color: '#ff0000', fontSize: '30px' });
+        scoreText.setOrigin(0.5, 0.5);
+        // 添加开始按钮
+        const restartButton = this.add.sprite(this.game.config.width / 2, 250, 'replaybutton', 0).setInteractive();
+        // 开始按钮事件
+        restartButton.on('pointerdown', () => {
+            restartButton.setFrame(1);
+        });
+        restartButton.on('pointerup', () => {
+            restartButton.setFrame(0);
+            console.log('start game');
+            this.scene.start('play');
+            startAudio.stop();
+        });
+        // 添加声音
+        const startAudio = this.sound.add('normalback');
+            startAudio.play({
+            loop: true,
+            volume: 0.1,
+        });
+  },
+  update() { },
+}
+
+const BulletClass = new Phaser.Class({
+    Extends: Phaser.GameObjects.Sprite,
+    initialize: function Bullet(scene) {
+        Phaser.GameObjects.Sprite.call(this, scene, 0, 0, 'mybullet');
+    },
+    update: function() {
+        if (this.y < -50) {
+            this.hide();
+        }
+    },
+    fire: function() {
+        this.setActive(true);
+        this.setVisible(true);
+    },
+    hide: function() {
+        this.setActive(false);
+        this.setVisible(false);
+    }
+});
+function EnemyBulletClass(gameHeight) {
+    return new Phaser.Class({
+        Extends: Phaser.GameObjects.Sprite,
+        initialize: function Bullet(scene) {
+            Phaser.GameObjects.Sprite.call(this, scene, 0, 0, 'bullet');
+        },
+        update: function() {
+            if (this.y > gameHeight) {
+                this.hide();
+            }
+        },
+        fire: function() {
+            this.setActive(true);
+            this.setVisible(true);
+        },
+        hide: function() {
+            this.setActive(false);
+            this.setVisible(false);
+        }
+    });
+}
+
+// 随机返回敌机
+function EnemyFactory(key, gameHeight, enemyBullets) {
+    return new Phaser.Class({
+        Extends: Phaser.GameObjects.Sprite,
+        initialize: function Bullet(scene) {
+            Phaser.GameObjects.Sprite.call(this, scene, 0, 0, key);
+            this.bulletSpeed = 1000 * (4 - key.replace('enemy', ''));
+            this.life = key.replace('enemy', '');
+            this.enemyBulletsBeforeTime = 0;
+            this.index = key.replace('enemy', '');
+        },
+        update: function () {
+            const time = new Date().getTime();
+            if (this.y > gameHeight) {
+                this.hide();
+            }
+
+            if (time - this.enemyBulletsBeforeTime >= this.bulletSpeed) {
+                const bullet = enemyBullets.getFirstDead(true);
+                if (bullet) {
+                    bullet.fire();
+                    bullet.setPosition(this.x, this.y + this.height / 2);
+                    this.scene.physics.add.existing(bullet);
+                    bullet.body.setVelocity(0, 100 * (4 - key.replace('enemy', '')));
+                    this.enemyBulletsBeforeTime = time;
+                }
+            }
+        },
+        show: function() {
+            this.setActive(true);
+            this.setVisible(true);
+        },
+        hide: function() {
+            this.setActive(false);
+            this.setVisible(false);
+        }
+    })
+}
 function createBulletByLife() {
     if (this.plane.life === 2) {
         for (let index = 0; index < 3; index++) {
@@ -254,7 +486,7 @@ const config = {
     parent: 'phaser-example',
     width: 240,
     height: 400,
-    scene: [gameSenceCenter.boot, gameSenceCenter.start, gameSenceCenter.play],
+    scene: [gameSenceCenter.boot, gameSenceCenter.start, gameSenceCenter.play, gameSenceCenter.restart],
     physics: {
         default: 'arcade'
     }

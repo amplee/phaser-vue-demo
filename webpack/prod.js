@@ -1,3 +1,10 @@
+/*
+ * @Descripttion: 
+ * @Author: amplee
+ * @Date: 2021-02-08 16:39:57
+ * @LastEditors: amplee
+ * @LastEditTime: 2021-02-22 17:20:49
+ */
 const merge = require("webpack-merge");
 const path = require("path");
 const base = require("./base");
@@ -6,7 +13,7 @@ const TerserPlugin = require("terser-webpack-plugin");
 module.exports = merge(base, {
   mode: "production",
   output: {
-    filename: "bundle.min.js"
+    filename: "main.js"
   },
   devtool: false,
   performance: {
